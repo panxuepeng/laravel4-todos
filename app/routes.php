@@ -15,3 +15,18 @@ Route::get('/', function()
 {
 	return View::make('hello');
 });
+
+Route::get('/login', function()
+{
+	$user = array(
+		'username' => 'panxuepeng',
+		'password' => 'panxuepeng',
+	);
+	
+	if (Auth::attempt($user))
+	{
+		return '登陆成功';
+	} else {
+		return '登陆失败';
+	}
+});
