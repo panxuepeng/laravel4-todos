@@ -21,7 +21,7 @@ class CreateTodosTable extends Migration {
 			$table->string('title', 255);
 			$table->string('completed', 4);
 			$table->timestamps();
-			
+			$table->softDeletes();
 			$table->unique('user_id');
 		});
 		/*

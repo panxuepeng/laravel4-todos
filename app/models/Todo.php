@@ -14,7 +14,7 @@ class Todo extends BaseModel
      * 软删除
      * @var boolean
      */
-    protected $softDelete = true;
+    //protected $softDelete = true;
 
     /**
      * 模型对象关系：作者
