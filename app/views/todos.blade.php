@@ -5,16 +5,14 @@
 	<title>Todos Demo</title>
 	<style>
 		body {
-			margin:0;
-			font-family:'Lato', sans-serif;
-			text-align:center;
-			color: #999;
+			padding: 10px;
 		}
 	</style>
 </head>
 <body>
-	{{ $todos }}
-	
+	@foreach($todos as $item)
+	{{ $item->title }}<br>
+	@endforeach
 	<script src="assets/jquery/jquery-2.1.1.min.js"></script>
 </body>
 </html>

@@ -119,7 +119,10 @@ return array(
 		'Illuminate\Validation\ValidationServiceProvider',
 		'Illuminate\View\ViewServiceProvider',
 		'Illuminate\Workbench\WorkbenchServiceProvider',
-
+		'Fideloper\Example\ExampleServiceProvider',
+		'FacadesDemo\DemoServiceProvider',
+		'Barryvdh\Debugbar\ServiceProvider',
+		'Way\Generators\GeneratorsServiceProvider',
 	),
 
 	/*
@@ -185,7 +188,9 @@ return array(
 		'URL'             => 'Illuminate\Support\Facades\URL',
 		'Validator'       => 'Illuminate\Support\Facades\Validator',
 		'View'            => 'Illuminate\Support\Facades\View',
-
+		'UnderlyingClass' => 'Fideloper\Example\Facades\UnderlyingClass',
+		'Demo' => 'FacadesDemo\Facades\Demo',
+		'Debugbar' => 'Barryvdh\Debugbar\Facade',
 	),
 
 );

@@ -15,9 +15,11 @@ Route::get('/', function()
 {
 	if (Auth::check())
 	{
-		//return View::make('todos')->with(array('todos' => json_encode(Todo::all()) ));
-		exit(json_encode(Todo::all()));
-		return View::make('todos')->with(array('todos' => 'hello list' ));
+		$user = Auth::user();
+		//$todos = Todo::where('user_id', '=', $user->id)->get()->toJson();
+		//exit(var_dump($todos));
+		$todos = Todo::where('user_id', '=', $user->id)->get();
+		return View::make('todos', array('todos' => $todos ));
 	} else {
 		return '请<a href="/login">登陆</a>';
 	}
@@ -29,10 +31,10 @@ Route::post('/', function()
 	if (Auth::check())
 	{
 		$title = Input::get('title');
-		$uid = Auth::user()->id;
+		$user = Auth::user();
 		
         Todo::create(array(
-			'user_id' => $uid,
+			'user_id' => $user->id,
 			'title' => $title,
 			'completed' => 'no',
 		));
@@ -58,4 +60,10 @@ Route::get('/login', function()
 		return '登陆失败';
 	}
 });
+
+Route::get('markdown', 'HomeController@markdown');
+Route::get('hi', 'HomeController@hi');
+Route::get('hello', 'HomeController@hello');
+Route::get('demo', 'HomeController@demo');
+//Route::get('markdown', array('as' => 'markdown', 'uses' => 'HomeController@markdown'));
 

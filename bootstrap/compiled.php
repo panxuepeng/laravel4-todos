@@ -425,7 +425,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class Application extends Container implements HttpKernelInterface, TerminableInterface, ResponsePreparerInterface
 {
-    const VERSION = '4.1.29';
+    const VERSION = '4.1.30';
     protected $booted = false;
     protected $bootingCallbacks = array();
     protected $bootedCallbacks = array();
@@ -940,7 +940,9 @@ class Request extends SymfonyRequest
     public function segments()
     {
         $segments = explode('/', $this->path());
-        return array_values(array_filter($segments));
+        return array_values(array_filter($segments, function ($v) {
+            return $v != '';
+        }));
     }
     public function is()
     {
@@ -4876,6 +4878,15 @@ class Router implements HttpKernelInterface, RouteFiltererInterface
     {
         return $this->current() ? $this->current()->getName() : null;
     }
+    public function is()
+    {
+        foreach (func_get_args() as $pattern) {
+            if (str_is($pattern, $this->currentRouteName())) {
+                return true;
+            }
+        }
+        return false;
+    }
     public function currentRouteNamed($name)
     {
         return $this->current() ? $this->current()->getName() == $name : false;
@@ -4884,6 +4895,15 @@ class Router implements HttpKernelInterface, RouteFiltererInterface
     {
         $action = $this->current()->getAction();
         return isset($action['controller']) ? $action['controller'] : null;
+    }
+    public function isAction()
+    {
+        foreach (func_get_args() as $pattern) {
+            if (str_is($pattern, $this->currentRouteAction())) {
+                return true;
+            }
+        }
+        return false;
     }
     public function currentRouteUses($action)
     {
@@ -5913,6 +5933,7 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
     protected $touches = array();
     protected $observables = array();
     protected $with = array();
+    protected $morphClass;
     public $exists = false;
     protected $softDelete = false;
     public static $snakeAttributes = true;
@@ -6401,8 +6422,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
                 $this->updateTimestamps();
             }
             $dirty = $this->getDirty();
-            $this->setKeysForSaveQuery($query)->update($dirty);
-            $this->fireModelEvent('updated', false);
+            if (count($dirty) > 0) {
+                $this->setKeysForSaveQuery($query)->update($dirty);
+                $this->fireModelEvent('updated', false);
+            }
         }
         return true;
     }
@@ -6594,6 +6617,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
         $id = $id ?: $name . '_id';
         return array($type, $id);
     }
+    public function getMorphClass()
+    {
+        return $this->morphClass ?: get_class($this);
+    }
     public function getPerPage()
     {
         return $this->perPage;
@@ -6704,6 +6731,12 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
     public function attributesToArray()
     {
         $attributes = $this->getArrayableAttributes();
+        foreach ($this->getDates() as $key) {
+            if (!isset($attributes[$key])) {
+                continue;
+            }
+            $attributes[$key] = (string) $this->asDateTime($attributes[$key]);
+        }
         foreach ($this->getMutatedAttributes() as $key) {
             if (!array_key_exists($key, $attributes)) {
                 continue;
@@ -6945,6 +6978,10 @@ abstract class Model implements ArrayAccess, ArrayableInterface, JsonableInterfa
     public static function setConnectionResolver(Resolver $resolver)
     {
         static::$resolver = $resolver;
+    }
+    public static function unsetConnectionResolver()
+    {
+        static::$resolver = null;
     }
     public static function getEventDispatcher()
     {
@@ -8148,6 +8185,10 @@ class Logger implements LoggerInterface
         }
         return array_shift($this->handlers);
     }
+    public function getHandlers()
+    {
+        return $this->handlers;
+    }
     public function pushProcessor($callback)
     {
         if (!is_callable($callback)) {
@@ -8161,6 +8202,10 @@ class Logger implements LoggerInterface
             throw new \LogicException('You tried to pop from an empty processor stack.');
         }
         return array_shift($this->processors);
+    }
+    public function getProcessors()
+    {
+        return $this->processors;
     }
     public function addRecord($level, $message, array $context = array())
     {
